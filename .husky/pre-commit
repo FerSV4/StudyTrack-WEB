@@ -1,0 +1,5 @@
+#!/bin/sh
+echo "Revisando codigo con formateadores"
+
+npx prettier --write "src/**/*.ts"
+npm run lint
