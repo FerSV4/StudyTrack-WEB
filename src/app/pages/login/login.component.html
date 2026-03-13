@@ -1,0 +1,32 @@
+<div class="login-container" style="max-width: 400px; margin: 50px auto; font-family: sans-serif;">
+  <h2>Ingresar a StudyTrack</h2>
+
+  @if (errorMessage) {
+    <div style="background-color: #ffebee; color: #c62828; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+      ⚠️ {{ errorMessage }}
+    </div>
+  }
+
+  <div style="display: flex; flex-direction: column; gap: 15px;">
+    <div>
+      <label>Email Universitario</label><br>
+      <input type="email" [(ngModel)]="email" placeholder="ejemplo@test.com" style="width: 100%; padding: 8px;">
+    </div>
+
+    <div>
+      <label>Contraseña</label><br>
+      <input type="password" [(ngModel)]="password" placeholder="********" style="width: 100%; padding: 8px;">
+    </div>
+
+    <button 
+      (click)="onLogin()" 
+      [disabled]="isLoading"
+      style="padding: 10px; background-color: #0056b3; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      @if (isLoading) {
+        Iniciando sesion.
+      } @else {
+        Iniciar Sesión
+      }
+    </button>
+  </div>
+</div>
