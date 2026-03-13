@@ -16,7 +16,7 @@ export interface Task {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class TaskService {
   private supabase: SupabaseClient;
@@ -53,11 +53,12 @@ export class TaskService {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       this.tasksSubject.next(data as Task[]);
-    } catch (err: any) {
-      console.error('Error codigo:', err);
-      this.errorSubject.next('Error con la DB.');
+    } catch (error: unknown) {
+      const err = error as { message: string };
+      console.error('Error:', err.message);
+      this.errorSubject.next('Ocurrió un problema al obtener las tareas.');
     } finally {
       this.isLoadingSubject.next(false);
     }

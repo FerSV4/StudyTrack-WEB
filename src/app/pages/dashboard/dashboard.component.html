@@ -21,8 +21,7 @@
     </div>
   }
 
-  @if (!(taskService.isLoading$ | async) && !(taskService.error$ | async)) {
-    
+@if ((taskService.isLoading$ | async) === false && (taskService.error$ | async) === null) {    
     @if ((taskService.tasks$ | async)?.length === 0) {
       <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px;">
         No hay tareas pendientes.

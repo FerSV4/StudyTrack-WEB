@@ -9,12 +9,12 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
 })
 export class LoginComponent {
   public email = '';
   public password = '';
-  
+
   public isLoading = false;
   public errorMessage: string | null = null;
 
@@ -33,8 +33,9 @@ export class LoginComponent {
     try {
       await this.authService.signIn(this.email, this.password);
       await this.router.navigate(['/dashboard']);
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Ocurrió un error.';
+    } catch (error: unknown) {
+      const err = error as { message: string };
+      this.errorMessage = err.message || 'Ocurrió un error al intentar acceder.';
     } finally {
       this.isLoading = false;
     }

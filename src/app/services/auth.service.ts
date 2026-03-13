@@ -4,11 +4,11 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthService {
   private supabase: SupabaseClient;
-    private currentUserSubject = new BehaviorSubject<User | null>(null);
+  private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
 
   private sessionSubject = new BehaviorSubject<Session | null>(null);
@@ -40,8 +40,8 @@ export class AuthService {
       email,
       password,
       options: {
-        data: { full_name: fullName }
-      }
+        data: { full_name: fullName },
+      },
     });
     if (error) throw error;
   }
