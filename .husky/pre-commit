@@ -1,0 +1,4 @@
+#!/bin/sh
+
+npx prettier --write "src/**/*.ts"
+npm run lint

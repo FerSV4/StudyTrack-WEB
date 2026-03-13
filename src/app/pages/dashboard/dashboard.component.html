@@ -1,0 +1,50 @@
+<div style="padding: 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
+  
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <h2>DashBoard</h2>
+    <button (click)="onLogout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Cerrar Sesión
+    </button>
+  </div>
+
+  <hr style="margin-bottom: 20px;">
+
+  @if (taskService.isLoading$ | async) {
+    <div style="text-align: center; color: #666; padding: 20px;">
+      Cargando...
+    </div>
+  }
+
+  @if (taskService.error$ | async; as errorMessage) {
+    <div style="background-color: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+      Error {{ errorMessage }}
+    </div>
+  }
+
+@if ((taskService.isLoading$ | async) === false && (taskService.error$ | async) === null) {    
+    @if ((taskService.tasks$ | async)?.length === 0) {
+      <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px;">
+        No hay tareas pendientes.
+      </div>
+    } @else {
+      <div style="display: grid; gap: 15px;">
+        @for (task of taskService.tasks$ | async; track task.id) {
+          <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+            <div style="display: flex; justify-content: space-between;">
+              <h3 style="margin: 0 0 10px 0;">{{ task.title }}</h3>
+              <span style="font-size: 0.85em; padding: 4px 8px; border-radius: 12px; background: #e3f2fd; color: #1976d2;">
+                {{ task.status }}
+              </span>
+            </div>
+            
+            <p style="margin: 0 0 10px 0; color: #555;"><strong>Materia:</strong> {{ task.subject }}</p>
+            
+            @if (task.description) {
+              <p style="margin: 0; color: #666; font-size: 0.9em;">{{ task.description }}</p>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
