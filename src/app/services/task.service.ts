@@ -38,7 +38,7 @@ export class TaskService {
   public async loadUserTasks(): Promise<void> {
     const session = this.authService.getCurrentSession();
     if (!session?.user?.email) {
-      this.errorSubject.next('No hay sesion, inicie una.');
+      this.errorSubject.next('Inicie sesion');
       return;
     }
 
@@ -58,9 +58,56 @@ export class TaskService {
     } catch (error: unknown) {
       const err = error as { message: string };
       console.error('Error:', err.message);
-      this.errorSubject.next('Ocurrió un problema al obtener las tareas.');
+      this.errorSubject.next('No se pudo obtener las tareas');
     } finally {
       this.isLoadingSubject.next(false);
     }
+  }
+  //CREATE
+  public async createTask(title: string, subject: string): Promise<void> {
+    const session = this.authService.getCurrentSession();
+    if (!session?.user?.email) return;
+
+    const newTask = {
+      title,
+      subject,
+      user_email: session.user.email,
+      status: 'Pendiente',
+      priority: 'Media',
+    };
+
+    const { error } = await this.supabase.from('tasks').insert(newTask);
+    if (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+
+    await this.loadUserTasks();
+  }
+
+  //UPDATE
+  public async toggleTaskStatus(id: number, currentStatus: string): Promise<void> {
+    const newStatus = currentStatus === 'Pendiente' ? 'Completada' : 'Pendiente';
+
+    const { error } = await this.supabase.from('tasks').update({ status: newStatus }).eq('id', id);
+
+    if (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+
+    await this.loadUserTasks();
+  }
+
+  //DELETE
+  public async deleteTask(id: number): Promise<void> {
+    const { error } = await this.supabase.from('tasks').delete().eq('id', id);
+
+    if (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+
+    await this.loadUserTasks();
   }
 }

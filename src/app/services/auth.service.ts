@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js';
+import { createClient, SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 
 @Injectable({
@@ -8,10 +9,13 @@ import { environment } from '../../environments/environment';
 })
 export class AuthService {
   private supabase: SupabaseClient;
-  private currentUserSubject = new BehaviorSubject<User | null>(null);
-  public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
 
   private sessionSubject = new BehaviorSubject<Session | null>(null);
+  public session$: Observable<Session | null> = this.sessionSubject.asObservable();
+
+  public currentUser$: Observable<User | null> = this.session$.pipe(
+    map((session) => session?.user ?? null),
+  );
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
@@ -21,12 +25,10 @@ export class AuthService {
   private setupAuthListener(): void {
     this.supabase.auth.getSession().then(({ data }) => {
       this.sessionSubject.next(data.session);
-      this.currentUserSubject.next(data.session?.user ?? null);
     });
 
     this.supabase.auth.onAuthStateChange((_event, session) => {
       this.sessionSubject.next(session);
-      this.currentUserSubject.next(session?.user ?? null);
     });
   }
 
@@ -53,5 +55,9 @@ export class AuthService {
 
   public getCurrentSession(): Session | null {
     return this.sessionSubject.value;
+  }
+  public async checkSessionValidity(): Promise<boolean> {
+    const { data } = await this.supabase.auth.getSession();
+    return !!data.session;
   }
 }
