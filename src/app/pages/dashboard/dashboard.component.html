@@ -1,7 +1,7 @@
 <div style="padding: 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
   
   <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h2>DashBoard</h2>
+    <h2>Mis tareas StudyTrack</h2>
     <button (click)="onLogout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
       Cerrar Sesión
     </button>
@@ -9,29 +9,54 @@
 
   <hr style="margin-bottom: 20px;">
 
+  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;">
+    <h4 style="margin-top: 0;">Añadir Tarea </h4>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" [(ngModel)]="newTaskTitle" placeholder="Título de la tarea..." style="flex: 2; padding: 8px;">
+      <input type="text" [(ngModel)]="newTaskSubject" placeholder="Materia..." style="flex: 1; padding: 8px;">
+      <button (click)="onAddTask()" [disabled]="isCreating || !newTaskTitle || !newTaskSubject" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        {{ isCreating ? 'Guardando...' : '+ Agregar' }}
+      </button>
+    </div>
+  </div>
+
   @if (taskService.isLoading$ | async) {
-    <div style="text-align: center; color: #666; padding: 20px;">
-      Cargando...
+    <div style="display: grid; gap: 15px;">
+      @for (item of [1, 2, 3]; track $index) {
+        <div class="skeleton-card">
+          <div class="skeleton-header">
+            <div class="skeleton-line title"></div>
+            <div class="skeleton-line badge"></div>
+          </div>
+          <div class="skeleton-line text-medium"></div>
+          <div class="skeleton-line text-short"></div>
+        </div>
+      }
     </div>
   }
 
   @if (taskService.error$ | async; as errorMessage) {
-    <div style="background-color: #ffebee; color: #c62828; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-      Error {{ errorMessage }}
+    <div style="padding: 15px; background: #ffebee; color: #c62828; border-radius: 8px; border: 1px solid #ef9a9a;">
+      <strong>Error:</strong> {{ errorMessage }}
     </div>
   }
 
-@if ((taskService.isLoading$ | async) === false && (taskService.error$ | async) === null) {    
+  @if ((taskService.isLoading$ | async) === false && (taskService.error$ | async) === null) {
+    
     @if ((taskService.tasks$ | async)?.length === 0) {
       <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px;">
-        No hay tareas pendientes.
+        No tienes tareas pendientes.
       </div>
     } @else {
       <div style="display: grid; gap: 15px;">
         @for (task of taskService.tasks$ | async; track task.id) {
           <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="display: flex; justify-content: space-between;">
-              <h3 style="margin: 0 0 10px 0;">{{ task.title }}</h3>
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              
+              <h3 style="margin: 0 0 10px 0;" [style.text-decoration]="task.status === 'Completada' ? 'line-through' : 'none'">
+                {{ task.title }}
+              </h3>
+              
               <span style="font-size: 0.85em; padding: 4px 8px; border-radius: 12px; background: #e3f2fd; color: #1976d2;">
                 {{ task.status }}
               </span>
@@ -39,9 +64,16 @@
             
             <p style="margin: 0 0 10px 0; color: #555;"><strong>Materia:</strong> {{ task.subject }}</p>
             
-            @if (task.description) {
-              <p style="margin: 0; color: #666; font-size: 0.9em;">{{ task.description }}</p>
-            }
+            <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+              <button (click)="onToggleStatus(task.id, task.status)" style="padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px;">
+                {{ task.status === 'Pendiente' ? 'Marcar Completada' : 'Marcar pendiente' }}
+              </button>
+              
+              <button (click)="onDeleteTask(task.id)" style="padding: 5px 10px; cursor: pointer; border: 1px solid #dc3545; background: #fff; color: #dc3545; border-radius: 4px;">
+                Eliminar
+              </button>
+            </div>
+
           </div>
         }
       </div>
