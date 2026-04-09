@@ -1,82 +1,96 @@
-<div style="padding: 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
+<div class="dashboard-layout">
   
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    <h2>Mis tareas StudyTrack</h2>
-    <button (click)="onLogout()" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
-      Cerrar Sesión
-    </button>
-  </div>
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h2 class="brand-logo"><span class="logo-accent">S</span>tudy<span class="logo-accent">T</span>rack</h2>
+      
+      <nav class="main-nav">
+        <a routerLink="/dashboard" class="nav-item active">Panel</a>
+        <a routerLink="/agenda" class="nav-item">Mi Agenda</a>
+      </nav>
 
-  <hr style="margin-bottom: 20px;">
-
-  <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #ddd;">
-    <h4 style="margin-top: 0;">Añadir Tarea </h4>
-    <div style="display: flex; gap: 10px;">
-      <input type="text" [(ngModel)]="newTaskTitle" placeholder="Título de la tarea..." style="flex: 2; padding: 8px;">
-      <input type="text" [(ngModel)]="newTaskSubject" placeholder="Materia..." style="flex: 1; padding: 8px;">
-      <button (click)="onAddTask()" [disabled]="isCreating || !newTaskTitle || !newTaskSubject" style="padding: 8px 15px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        {{ isCreating ? 'Guardando...' : '+ Agregar' }}
-      </button>
-    </div>
-  </div>
-
-  @if (taskService.isLoading$ | async) {
-    <div style="display: grid; gap: 15px;">
-      @for (item of [1, 2, 3]; track $index) {
-        <div class="skeleton-card">
-          <div class="skeleton-header">
-            <div class="skeleton-line title"></div>
-            <div class="skeleton-line badge"></div>
-          </div>
-          <div class="skeleton-line text-medium"></div>
-          <div class="skeleton-line text-short"></div>
-        </div>
-      }
-    </div>
-  }
-
-  @if (taskService.error$ | async; as errorMessage) {
-    <div style="padding: 15px; background: #ffebee; color: #c62828; border-radius: 8px; border: 1px solid #ef9a9a;">
-      <strong>Error:</strong> {{ errorMessage }}
-    </div>
-  }
-
-  @if ((taskService.isLoading$ | async) === false && (taskService.error$ | async) === null) {
-    
-    @if ((taskService.tasks$ | async)?.length === 0) {
-      <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 8px;">
-        No tienes tareas pendientes.
+      <div class="header-actions">
+        <button class="btn-secondary" routerLink="/profile">Perfil</button>
+        <button class="btn-logout" (click)="onLogout()">Logout</button>
       </div>
-    } @else {
-      <div style="display: grid; gap: 15px;">
-        @for (task of taskService.tasks$ | async; track task.id) {
-          <div style="border: 1px solid #e0e0e0; padding: 15px; border-radius: 8px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              
-              <h3 style="margin: 0 0 10px 0;" [style.text-decoration]="task.status === 'Completada' ? 'line-through' : 'none'">
-                {{ task.title }}
-              </h3>
-              
-              <span style="font-size: 0.85em; padding: 4px 8px; border-radius: 12px; background: #e3f2fd; color: #1976d2;">
-                {{ task.status }}
-              </span>
-            </div>
-            
-            <p style="margin: 0 0 10px 0; color: #555;"><strong>Materia:</strong> {{ task.subject }}</p>
-            
-            <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid #eee; padding-top: 10px;">
-              <button (click)="onToggleStatus(task.id, task.status)" style="padding: 5px 10px; cursor: pointer; border: 1px solid #ccc; background: #f9f9f9; border-radius: 4px;">
-                {{ task.status === 'Pendiente' ? 'Marcar Completada' : 'Marcar pendiente' }}
-              </button>
-              
-              <button (click)="onDeleteTask(task.id)" style="padding: 5px 10px; cursor: pointer; border: 1px solid #dc3545; background: #fff; color: #dc3545; border-radius: 4px;">
-                Eliminar
-              </button>
-            </div>
+    </div>
+  </header>
 
+  <main class="dashboard-content">
+    
+    <div class="welcome-section">
+      <h1>Resumen Semanal</h1>
+    </div>
+
+    <section class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-icon bg-blue">...</div>
+        <div class="metric-info">
+          <h3>Pendientes</h3>
+          <span class="metric-value">{{ pendingCount }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon bg-red">!!</div>
+        <div class="metric-info">
+          <h3>Urgentes (Alta)</h3>
+          <span class="metric-value">{{ highPriorityCount }}</span>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-icon bg-green">👍</div>
+        <div class="metric-info">
+          <h3>Completadas</h3>
+          <span class="metric-value">{{ completedCount }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="weekly-section">
+      <div class="section-header">
+        <h3>Tu Semana</h3>
+        <button class="btn-text" routerLink="/agenda">Ver Agenda Completa →</button>
+      </div>
+
+      <div class="calendar-strip">
+        @for (day of weeklyCalendar; track day.date) {
+          <div class="day-card" 
+               [class.today]="day.isToday" 
+               [class.selected]="selectedDate === day.date"
+               (click)="selectDay(day.date)">
+            
+            <span class="day-name">
+              @if (day.isToday) {
+                HOY
+              } @else {
+                {{ day.dayName | titlecase }}
+              }
+            </span>
+            
+            <span class="day-number">{{ day.dayNumber }}</span>
+            
+            @if (day.hasTasks) {
+              <div class="task-dot"></div>
+            } @else {
+              <div class="empty-dot"></div>
+            }
           </div>
         }
       </div>
-    }
-  }
+
+    </section>
+
+    <section class="quick-actions">
+      <div class="action-banner">
+        <div class="banner-content">
+          <h3>Las tareas tienen su propia sección</h3>
+          <p>Ve a tu agenda para programar todas tus actividades.</p>
+        </div>
+        <button class="btn-primary" routerLink="/agenda">Ir a Mi Agenda</button>
+      </div>
+    </section>
+
+  </main>
 </div>

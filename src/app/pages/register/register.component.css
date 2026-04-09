@@ -70,7 +70,7 @@ input {
 }
 
 input:focus {
-  border-color: #002e6a;
+  border-color: #1a73e8;
   outline: none;
   box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
 }
@@ -90,14 +90,13 @@ input:focus {
 }
 
 .btn-primary:hover:not([disabled]) {
-  background-color: #045713;
+  background-color: #1557b0;
 }
 
 .btn-primary[disabled] {
   background-color: #335182;
   cursor: not-allowed;
 }
-
 .auth-link {
   margin-top: 25px;
   font-size: 0.9rem;

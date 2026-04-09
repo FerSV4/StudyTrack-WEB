@@ -3,6 +3,7 @@ import { createClient, SupabaseClient, Session, User } from '@supabase/supabase-
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
+import { mapSupaApiError } from '../core/utils/error.utils';
 
 @Injectable({
   providedIn: 'root',
@@ -32,20 +33,48 @@ export class AuthService {
     });
   }
 
-  public async signIn(email: string, password: string): Promise<void> {
-    const { error } = await this.supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }
+  public async signIn(email: string, pass: string): Promise<void> {
+    if (!navigator.onLine) {
+      throw new Error('No hay conexión a internet. Verifica tu red.');
+    }
 
+    try {
+      const { data, error } = await this.supabase.auth.signInWithPassword({
+        email,
+        password: pass,
+      });
+
+      if (error) throw error;
+
+      this.sessionSubject.next(data.session);
+    } catch (err: any) {
+      if (err.message === 'No hay conexión a internet. Verifica tu red.') {
+        throw err;
+      }
+      throw new Error(mapSupaApiError(err));
+    }
+  }
   public async signUp(email: string, password: string, fullName: string): Promise<void> {
-    const { error } = await this.supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-      },
-    });
-    if (error) throw error;
+    if (!navigator.onLine) {
+      throw new Error('No hay conexión a internet. Verifica tu red.');
+    }
+
+    try {
+      const { error } = await this.supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { full_name: fullName },
+        },
+      });
+
+      if (error) throw error;
+    } catch (err: any) {
+      if (err.message === 'No hay conexión a internet. Verifica tu red.') {
+        throw err;
+      }
+      throw new Error(mapSupaApiError(err));
+    }
   }
 
   public async signOut(): Promise<void> {

@@ -1,3 +1,3 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LoginComponent } from './login.component';
+import { AgendaComponent } from './agenda.component';
