@@ -5,13 +5,14 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-register',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  templateUrl: './register.component.html',
+  styleUrls: ['./register.component.css']
 })
-export class LoginComponent {
+export class RegisterComponent {
+  public fullName = '';
   public email = '';
   public password = '';
   public isLoading = false;
@@ -20,17 +21,17 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  public async onLogin(): Promise<void> {
-    if (!this.email || !this.password) return;
+  public async onRegister(): Promise<void> {
+    if (!this.fullName || !this.email || !this.password) return;
 
     this.isLoading = true;
     this.errorMessage = '';
 
     try {
-      await this.authService.signIn(this.email, this.password);
+      await this.authService.signUp(this.email, this.password, this.fullName);
       this.router.navigate(['/dashboard']);
     } catch (error: any) {
-      this.errorMessage = error.message || 'Error en el login.';
+      this.errorMessage = error.message || 'Error';
     } finally {
       this.isLoading = false;
     }

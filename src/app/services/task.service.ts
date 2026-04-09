@@ -3,6 +3,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
+import { mapSupaApiError } from '../core/utils/error.utils';
 
 export interface Task {
   id: number;
@@ -35,10 +36,22 @@ export class TaskService {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
   }
 
-  public async loadUserTasks(): Promise<void> {
-    const session = this.authService.getCurrentSession();
-    if (!session?.user?.email) {
-      this.errorSubject.next('Inicie sesion');
+  private hasLoaded = false;
+
+  private dispatchError(message: string): void {
+    this.errorSubject.next(message);
+    setTimeout(() => {
+      this.errorSubject.next(null);
+    }, 5000);
+  }
+
+  public async loadUserTasks(forceRefresh = false): Promise<void> {
+    if (this.hasLoaded && !forceRefresh) {
+      return; 
+    }
+
+    if (!navigator.onLine) {
+      this.dispatchError('Sin conexión. Mostrando datos guardados.');
       return;
     }
 
@@ -46,68 +59,116 @@ export class TaskService {
     this.errorSubject.next(null);
 
     try {
+      const session = this.authService.getCurrentSession();
+      if (!session?.user?.email) throw new Error('No hay sesión activa');
+
       const { data, error } = await this.supabase
         .from('tasks')
         .select('*')
-        .eq('user_email', session.user.email)
-        .order('created_at', { ascending: false });
+        .eq('user_email', session.user.email);
 
       if (error) throw error;
 
-      this.tasksSubject.next(data as Task[]);
-    } catch (error: unknown) {
-      const err = error as { message: string };
-      console.error('Error:', err.message);
-      this.errorSubject.next('No se pudo obtener las tareas');
+      this.tasksSubject.next(data || []);
+      
+      this.hasLoaded = true;
+
+    } catch (e: any) {
+      this.dispatchError(mapSupaApiError(e));
     } finally {
       this.isLoadingSubject.next(false);
     }
   }
+
   //CREATE
-  public async createTask(title: string, subject: string): Promise<void> {
+  public async createTask(taskData: { title: string; subject: string; description?: string; due_date?: string; priority: string }): Promise<void> {
+    if (!navigator.onLine) {
+      this.dispatchError('No hay conexion a internet.');
+      throw new Error('Offline');
+    }
+
     const session = this.authService.getCurrentSession();
     if (!session?.user?.email) return;
 
     const newTask = {
-      title,
-      subject,
+      ...taskData,
       user_email: session.user.email,
-      status: 'Pendiente',
-      priority: 'Media',
+      status: 'Pendiente'
     };
 
-    const { error } = await this.supabase.from('tasks').insert(newTask);
-    if (error) {
-      console.error('Error:', error);
-      throw error;
+    try {
+      const { error } = await this.supabase.from('tasks').insert(newTask);
+      if (error) throw error;
+      
+      await this.loadUserTasks(true);
+    } catch (err: any) {
+      this.dispatchError(mapSupaApiError(err));
+      throw err;
     }
-
-    await this.loadUserTasks();
   }
 
   //UPDATE
   public async toggleTaskStatus(id: number, currentStatus: string): Promise<void> {
-    const newStatus = currentStatus === 'Pendiente' ? 'Completada' : 'Pendiente';
-
-    const { error } = await this.supabase.from('tasks').update({ status: newStatus }).eq('id', id);
-
-    if (error) {
-      console.error('Error:', error);
-      throw error;
+     if (!navigator.onLine) {
+      this.dispatchError('No se detecta conexion a internet.');
+      throw new Error('Offline');
     }
 
-    await this.loadUserTasks();
+    const newStatus = currentStatus === 'Pendiente' ? 'Completada' : 'Pendiente';
+
+    try {
+      const { error } = await this.supabase.from('tasks').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      
+      await this.loadUserTasks(true);
+    } catch (err: any) {
+      this.dispatchError(mapSupaApiError(err));
+      throw err;
+    }
+  }
+
+  public async updateTaskDetails(id: number, taskData: { title: string; subject: string; description?: string; due_date?: string; priority: string }): Promise<void> {
+    if (!navigator.onLine) {
+      this.dispatchError('No se detecta conexion a internet.');
+      throw new Error('Offline');
+    }
+
+    try {
+      const { error } = await this.supabase
+        .from('tasks')
+        .update(taskData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await this.loadUserTasks(true);
+    } catch (err: any) {
+      this.dispatchError(mapSupaApiError(err));
+      throw err;
+    }
   }
 
   //DELETE
   public async deleteTask(id: number): Promise<void> {
-    const { error } = await this.supabase.from('tasks').delete().eq('id', id);
-
-    if (error) {
-      console.error('Error:', error);
-      throw error;
+    if (!navigator.onLine) {
+      this.dispatchError('No se pudo eliminar, No hay conexión.');
+      throw new Error('Offline');
     }
 
-    await this.loadUserTasks();
+    try {
+      const { error } = await this.supabase.from('tasks').delete().eq('id', id);
+      if (error) throw error;
+
+      await this.loadUserTasks(true);
+    } catch (err: any) {
+      this.dispatchError(mapSupaApiError(err));
+      throw err;
+    }
+  }
+
+  public clearCache(): void {
+    this.hasLoaded = false;
+    this.tasksSubject.next([]);
+    this.errorSubject.next(null);
   }
 }
