@@ -47,7 +47,7 @@ export class TaskService {
 
   public async loadUserTasks(forceRefresh = false): Promise<void> {
     if (this.hasLoaded && !forceRefresh) {
-      return; 
+      return;
     }
 
     if (!navigator.onLine) {
@@ -70,9 +70,8 @@ export class TaskService {
       if (error) throw error;
 
       this.tasksSubject.next(data || []);
-      
-      this.hasLoaded = true;
 
+      this.hasLoaded = true;
     } catch (e: any) {
       this.dispatchError(mapSupaApiError(e));
     } finally {
@@ -81,7 +80,13 @@ export class TaskService {
   }
 
   //CREATE
-  public async createTask(taskData: { title: string; subject: string; description?: string; due_date?: string; priority: string }): Promise<void> {
+  public async createTask(taskData: {
+    title: string;
+    subject: string;
+    description?: string;
+    due_date?: string;
+    priority: string;
+  }): Promise<void> {
     if (!navigator.onLine) {
       this.dispatchError('No hay conexion a internet.');
       throw new Error('Offline');
@@ -93,13 +98,13 @@ export class TaskService {
     const newTask = {
       ...taskData,
       user_email: session.user.email,
-      status: 'Pendiente'
+      status: 'Pendiente',
     };
 
     try {
       const { error } = await this.supabase.from('tasks').insert(newTask);
       if (error) throw error;
-      
+
       await this.loadUserTasks(true);
     } catch (err: any) {
       this.dispatchError(mapSupaApiError(err));
@@ -109,7 +114,7 @@ export class TaskService {
 
   //UPDATE
   public async toggleTaskStatus(id: number, currentStatus: string): Promise<void> {
-     if (!navigator.onLine) {
+    if (!navigator.onLine) {
       this.dispatchError('No se detecta conexion a internet.');
       throw new Error('Offline');
     }
@@ -117,9 +122,12 @@ export class TaskService {
     const newStatus = currentStatus === 'Pendiente' ? 'Completada' : 'Pendiente';
 
     try {
-      const { error } = await this.supabase.from('tasks').update({ status: newStatus }).eq('id', id);
+      const { error } = await this.supabase
+        .from('tasks')
+        .update({ status: newStatus })
+        .eq('id', id);
       if (error) throw error;
-      
+
       await this.loadUserTasks(true);
     } catch (err: any) {
       this.dispatchError(mapSupaApiError(err));
@@ -127,17 +135,23 @@ export class TaskService {
     }
   }
 
-  public async updateTaskDetails(id: number, taskData: { title: string; subject: string; description?: string; due_date?: string; priority: string }): Promise<void> {
+  public async updateTaskDetails(
+    id: number,
+    taskData: {
+      title: string;
+      subject: string;
+      description?: string;
+      due_date?: string;
+      priority: string;
+    },
+  ): Promise<void> {
     if (!navigator.onLine) {
       this.dispatchError('No se detecta conexion a internet.');
       throw new Error('Offline');
     }
 
     try {
-      const { error } = await this.supabase
-        .from('tasks')
-        .update(taskData)
-        .eq('id', id);
+      const { error } = await this.supabase.from('tasks').update(taskData).eq('id', id);
 
       if (error) throw error;
 

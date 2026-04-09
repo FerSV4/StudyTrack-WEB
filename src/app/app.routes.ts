@@ -16,25 +16,21 @@ export const routes: Routes = [
     component: DashboardComponent,
     canActivate: [authGuard],
   },
-  { 
-    path: 'agenda', 
-    component: AgendaComponent, 
-    canActivate: [authGuard] 
+  {
+    path: 'agenda',
+    component: AgendaComponent,
+    canActivate: [authGuard],
   },
   {
     path: 'calendar',
     component: DashboardComponent,
     canActivate: [authGuard],
   },
-  { path: 'profile', 
-    component: ProfileComponent, 
-    canActivate: [authGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
   {
     path: 'settings',
     component: DashboardComponent,
     canActivate: [authGuard],
   },
   { path: '**', redirectTo: '/dashboard' },
-  
-  
 ];

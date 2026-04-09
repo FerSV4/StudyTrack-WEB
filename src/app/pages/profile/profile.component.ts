@@ -4,8 +4,6 @@ import { RouterModule } from '@angular/router';
   selector: 'app-profile',
   imports: [RouterModule],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.css'
+  styleUrl: './profile.component.css',
 })
-export class ProfileComponent {
-
-}
+export class ProfileComponent {}

@@ -13,7 +13,7 @@ import { isBefore, isToday, parseISO, startOfDay } from 'date-fns';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './agenda.component.html',
-  styleUrls: ['./agenda.component.css']
+  styleUrls: ['./agenda.component.css'],
 })
 export class AgendaComponent implements OnInit {
   public taskService = inject(TaskService);
@@ -37,38 +37,40 @@ export class AgendaComponent implements OnInit {
       subject: ['', Validators.required],
       description: [''],
       due_date: [''],
-      priority: ['Media', Validators.required]
+      priority: ['Media', Validators.required],
     });
 
     this.filteredTasks$ = combineLatest([
       this.taskService.tasks$,
       this.statusFilter,
-      this.timeFilter
+      this.timeFilter,
     ]).pipe(
       map(([tasks, status, time]) => {
         const today = startOfDay(new Date());
 
-        return tasks.filter(task => {
-          const matchStatus = status === 'Todas' || task.status === status;
-          
-          let matchTime = true;
-          if (time !== 'Todas' && task.due_date) {
-            const taskDate = startOfDay(parseISO(task.due_date));
-            if (time === 'Hoy') matchTime = isToday(taskDate);
-            if (time === 'Proximas') matchTime = !isBefore(taskDate, today) || isToday(taskDate);
-            if (time === 'Vencidas') matchTime = isBefore(taskDate, today) && !isToday(taskDate);
-          } else if (time !== 'Todas' && !task.due_date) {
-            matchTime = time === 'Proximas';
-          }
+        return tasks
+          .filter((task) => {
+            const matchStatus = status === 'Todas' || task.status === status;
 
-          return matchStatus && matchTime;
-        }).sort((a, b) => {
-          if (!a.due_date) return 1;
-          if (!b.due_date) return -1;
-          
-          return parseISO(a.due_date).getTime() - parseISO(b.due_date).getTime();
-        });
-      })
+            let matchTime = true;
+            if (time !== 'Todas' && task.due_date) {
+              const taskDate = startOfDay(parseISO(task.due_date));
+              if (time === 'Hoy') matchTime = isToday(taskDate);
+              if (time === 'Proximas') matchTime = !isBefore(taskDate, today) || isToday(taskDate);
+              if (time === 'Vencidas') matchTime = isBefore(taskDate, today) && !isToday(taskDate);
+            } else if (time !== 'Todas' && !task.due_date) {
+              matchTime = time === 'Proximas';
+            }
+
+            return matchStatus && matchTime;
+          })
+          .sort((a, b) => {
+            if (!a.due_date) return 1;
+            if (!b.due_date) return -1;
+
+            return parseISO(a.due_date).getTime() - parseISO(b.due_date).getTime();
+          });
+      }),
     );
   }
 
@@ -99,7 +101,7 @@ export class AgendaComponent implements OnInit {
       subject: task.subject,
       description: task.description || '',
       due_date: task.due_date || '',
-      priority: task.priority
+      priority: task.priority,
     });
     this.isModalOpen = true;
   }
@@ -110,9 +112,9 @@ export class AgendaComponent implements OnInit {
     this.taskForm.reset({ priority: 'Media' });
   }
 
-public async onSaveTask(): Promise<void> {
+  public async onSaveTask(): Promise<void> {
     if (this.taskForm.invalid) return;
-    
+
     this.isCreating = true;
     try {
       if (this.editingTaskId) {
@@ -120,7 +122,7 @@ public async onSaveTask(): Promise<void> {
       } else {
         await this.taskService.createTask(this.taskForm.value);
       }
-      this.closeModal(); 
+      this.closeModal();
     } catch (e) {
       console.warn('Errores de conexion');
     } finally {

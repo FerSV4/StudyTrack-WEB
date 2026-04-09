@@ -33,7 +33,7 @@ export class AuthService {
     });
   }
 
-public async signIn(email: string, pass: string): Promise<void> {
+  public async signIn(email: string, pass: string): Promise<void> {
     if (!navigator.onLine) {
       throw new Error('No hay conexión a internet. Verifica tu red.');
     }
@@ -45,7 +45,7 @@ public async signIn(email: string, pass: string): Promise<void> {
       });
 
       if (error) throw error;
-      
+
       this.sessionSubject.next(data.session);
     } catch (err: any) {
       if (err.message === 'No hay conexión a internet. Verifica tu red.') {
@@ -54,7 +54,7 @@ public async signIn(email: string, pass: string): Promise<void> {
       throw new Error(mapSupaApiError(err));
     }
   }
-public async signUp(email: string, password: string, fullName: string): Promise<void> {
+  public async signUp(email: string, password: string, fullName: string): Promise<void> {
     if (!navigator.onLine) {
       throw new Error('No hay conexión a internet. Verifica tu red.');
     }
@@ -67,7 +67,7 @@ public async signUp(email: string, password: string, fullName: string): Promise<
           data: { full_name: fullName },
         },
       });
-      
+
       if (error) throw error;
     } catch (err: any) {
       if (err.message === 'No hay conexión a internet. Verifica tu red.') {
