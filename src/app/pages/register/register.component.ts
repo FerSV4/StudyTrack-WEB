@@ -2,8 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -12,28 +12,41 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./register.component.css'],
 })
 export class RegisterComponent {
-  public fullName = '';
   public email = '';
   public password = '';
+  public fullName = '';
   public isLoading = false;
   public errorMessage = '';
 
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  public async onRegister(): Promise<void> {
-    if (!this.fullName || !this.email || !this.password) return;
+  public onRegister(): void {
+    if (!this.email || !this.password || !this.fullName) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    try {
-      await this.authService.signUp(this.email, this.password, this.fullName);
-      this.router.navigate(['/dashboard']);
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Error';
-    } finally {
-      this.isLoading = false;
-    }
+    const registerData = {
+      email: this.email,
+      password: this.password,
+      fullName: this.fullName
+    };
+
+    this.authService.register(registerData).subscribe({
+      next: () => {
+        this.router.navigate(['/login']);
+      },
+      error: (err: any) => {
+        this.errorMessage = err.error?.message || 'Error al registrar el usuario.';
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 }

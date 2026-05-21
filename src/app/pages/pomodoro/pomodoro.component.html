@@ -1,0 +1,71 @@
+<div class="dashboard-layout">
+  
+  <header class="dashboard-header">
+    <div class="header-content">
+      <h2 class="brand-logo">
+        <span style="color: #2563eb;">Study</span><span style="color: #0f172a;">Track</span>
+      </h2>
+      
+      <nav class="main-nav">
+        <a routerLink="/dashboard" class="nav-item">Panel</a>
+        <a routerLink="/agenda" class="nav-item">Mi Agenda</a>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn-perfil" routerLink="/profile">Perfil</button>
+        <button class="btn-logout-forced" (click)="onLogout()">Cerrar Sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="dashboard-content centralizer">
+    <div class="pomodoro-card card">
+      
+      <div class="mode-indicator">
+        <span class="badge" [class.mode-work]="currentMode === 'work'" [class.mode-break]="currentMode === 'break'">
+          {{ currentMode === 'work' ? '📚 TIEMPO DE ENFOQUE' : '☕ DESCANSO' }}
+        </span>
+      </div>
+
+      <div class="timer-display">
+        {{ formatTime() }}
+      </div>
+
+      <div class="setup-group">
+        <label class="input-label">Tarea a trabajar:</label>
+        <select class="form-control-styled" [(ngModel)]="selectedTaskId" [disabled]="isRunning || currentMode === 'break'">
+          <option value="" disabled selected>Selecciona una tarea pendiente</option>
+          
+          @if (tasks$ | async; as tasks) {
+            
+            @for (task of $any(tasks); track task.id) {
+              
+              @if (task.status === 'pending') {
+                <option [value]="task.id">[{{ task.subjects?.name }}] {{ task.title }}</option>
+              }
+              
+            }
+            
+          }
+        </select>
+      </div>
+
+      <div class="timer-actions">
+        <button class="btn-primary-forced" (click)="toggleTimer()">
+          {{ isRunning ? '⏸ Pausar' : '▶ Iniciar' }}
+        </button>
+        
+        <button class="btn-perfil" (click)="resetTimer()" [disabled]="!isRunning && timeLeft === (currentMode === 'work' ? 25*60 : 5*60)">
+          🔄 Reiniciar
+        </button>
+
+        @if (currentSessionId && isRunning) {
+          <button class="btn-logout-forced" (click)="completeWorkSession()">
+            ⏱ Terminar Ya
+          </button>
+        }
+      </div>
+
+    </div>
+  </main>
+</div>

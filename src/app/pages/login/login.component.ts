@@ -2,8 +2,8 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-
+import { HttpErrorResponse } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -20,19 +20,31 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
 
-  public async onLogin(): Promise<void> {
-    if (!this.email || !this.password) return;
+  public onLogin(): void {
+    if (!this.email || !this.password) {
+      this.errorMessage = 'Por favor, completa todos los campos.';
+      return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    try {
-      await this.authService.signIn(this.email, this.password);
-      this.router.navigate(['/dashboard']);
-    } catch (error: any) {
-      this.errorMessage = error.message || 'Error en el login.';
-    } finally {
-      this.isLoading = false;
-    }
+    const loginData = {
+      email: this.email,
+      password: this.password
+    };
+
+    this.authService.login(loginData).subscribe({
+      next: () => {
+        this.router.navigate(['/dashboard']);
+      },
+      error: (err: HttpErrorResponse) => {
+        this.errorMessage = err.error?.message || 'Error al iniciar sesión. Verifica tus credenciales.';
+        this.isLoading = false;
+      },
+      complete: () => {
+        this.isLoading = false;
+      }
+    });
   }
 }

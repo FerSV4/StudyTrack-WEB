@@ -2,95 +2,200 @@
   
   <header class="dashboard-header">
     <div class="header-content">
-      <h2 class="brand-logo"><span class="logo-accent">S</span>tudy<span class="logo-accent">T</span>rack</h2>
+      <h2 class="brand-logo"><span class="logo-accent">S</span>tudy<span class="text-white">Track</span></h2>
       
       <nav class="main-nav">
         <a routerLink="/dashboard" class="nav-item active">Panel</a>
         <a routerLink="/agenda" class="nav-item">Mi Agenda</a>
+        <a routerLink="/pomodoro" class="nav-item">Modo Enfoque</a>
       </nav>
 
       <div class="header-actions">
-        <button class="btn-secondary" routerLink="/profile">Perfil</button>
-        <button class="btn-logout" (click)="onLogout()">Logout</button>
+        <button class="btn-header-outline" routerLink="/profile">Perfil</button>
+        <button class="btn-logout" (click)="onLogout()">Cerrar Sesión</button>
       </div>
     </div>
   </header>
 
   <main class="dashboard-content">
     
-    <div class="welcome-section">
-      <h1>Resumen Semanal</h1>
-    </div>
-
-    <section class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-icon bg-blue">...</div>
-        <div class="metric-info">
-          <h3>Pendientes</h3>
-          <span class="metric-value">{{ pendingCount }}</span>
+    @if (activeTerm$ | async; as term) {
+      
+      <div class="welcome-banner card">
+        <div class="welcome-text">
+          <h1>{{ term.name }}</h1>
+          <p class="subtitle">Tu centro de mando académico</p>
+        </div>
+        <div class="progress-container">
+          <div class="progress-labels">
+            <span>Progreso General</span>
+            <span class="font-bold text-primary">{{ progress$ | async }}%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" [style.width.%]="progress$ | async"></div>
+          </div>
         </div>
       </div>
 
-      <div class="metric-card">
-        <div class="metric-icon bg-red">!!</div>
-        <div class="metric-info">
-          <h3>Urgentes (Alta)</h3>
-          <span class="metric-value">{{ highPriorityCount }}</span>
-        </div>
-      </div>
-
-      <div class="metric-card">
-        <div class="metric-icon bg-green">👍</div>
-        <div class="metric-info">
-          <h3>Completadas</h3>
-          <span class="metric-value">{{ completedCount }}</span>
-        </div>
-      </div>
-    </section>
-
-    <section class="weekly-section">
-      <div class="section-header">
-        <h3>Tu Semana</h3>
-        <button class="btn-text" routerLink="/agenda">Ver Agenda Completa →</button>
-      </div>
-
-      <div class="calendar-strip">
-        @for (day of weeklyCalendar; track day.date) {
-          <div class="day-card" 
-               [class.today]="day.isToday" 
-               [class.selected]="selectedDate === day.date"
-               (click)="selectDay(day.date)">
-            
-            <span class="day-name">
-              @if (day.isToday) {
-                HOY
-              } @else {
-                {{ day.dayName | titlecase }}
-              }
-            </span>
-            
-            <span class="day-number">{{ day.dayNumber }}</span>
-            
-            @if (day.hasTasks) {
-              <div class="task-dot"></div>
-            } @else {
-              <div class="empty-dot"></div>
-            }
+      @if (dailyLoad$ | async; as load) {
+        @if (load.status !== 'normal') {
+          <div class="alert-banner" [class.critical]="load.status === 'critical'">
+            <div class="alert-icon-box">
+              <span class="alert-icon">{{ load.status === 'critical' ? '⚠️' : '⚡' }}</span>
+            </div>
+            <div class="alert-text">
+              <strong>Carga alta hoy: {{ load.hours }} horas estimadas.</strong> 
+              <p>{{ load.status === 'critical' ? 'Riesgo de agotamiento. Prioriza lo urgente.' : 'Día exigente, mantén el enfoque.' }}</p>
+            </div>
           </div>
         }
-      </div>
+      }
 
-    </section>
-
-    <section class="quick-actions">
-      <div class="action-banner">
-        <div class="banner-content">
-          <h3>Las tareas tienen su propia sección</h3>
-          <p>Ve a tu agenda para programar todas tus actividades.</p>
+      <section class="metrics-grid">
+        <div class="metric-card card">
+          <div class="metric-icon-container bg-blue-gradient">
+            <span class="icon-emoji">📋</span>
+          </div>
+          <div class="metric-info">
+            <h3>Pendientes</h3>
+            <span class="metric-value">{{ pendingCount$ | async }}</span>
+          </div>
         </div>
-        <button class="btn-primary" routerLink="/agenda">Ir a Mi Agenda</button>
+
+        <div class="metric-card card">
+          <div class="metric-icon-container bg-red-gradient">
+            <span class="icon-emoji">🔥</span>
+          </div>
+          <div class="metric-info">
+            <h3>Urgentes</h3>
+            <span class="metric-value">{{ highPriorityCount$ | async }}</span>
+          </div>
+        </div>
+
+        <div class="metric-card card">
+          <div class="metric-icon-container bg-green-gradient">
+            <span class="icon-emoji">✅</span>
+          </div>
+          <div class="metric-info">
+            <h3>Completadas</h3>
+            <span class="metric-value">{{ completedCount$ | async }}</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="weekly-section card">
+        <div class="section-header">
+          <div>
+            <h3>Tu Semana</h3>
+            <p class="text-sm text-muted">Haz clic en un día para ver sus tareas</p>
+          </div>
+          <button class="btn-primary" routerLink="/agenda">Ver Agenda Completa</button>
+        </div>
+
+        <div class="calendar-strip">
+          @for (day of weeklyCalendar; track day.date) {
+            <div class="day-card" 
+                 [class.today]="day.isToday" 
+                 [class.selected]="selectedDate === day.date && !day.isToday"
+                 (click)="selectDay(day.date)">
+              
+              <span class="day-name">
+                @if (day.isToday) { HOY } @else { {{ day.dayName | titlecase }} }
+              </span>
+              <span class="day-number">{{ day.dayNumber }}</span>
+              
+              <div class="task-dot-container">
+                @if (day.hasTasks) {
+                  <div class="task-dot active"></div>
+                } @else {
+                  <div class="task-dot empty"></div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="subjects-section">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <h3 class="section-title" style="margin: 0;">Tus Materias</h3>
+          <button class="btn-header-outline" style="color: #0f172a !important; border-color: #cbd5e1 !important;" (click)="openSettingsModal(term.id)">⚙️ Gestionar Semestre</button>
+        </div>
+        <div class="subjects-grid">
+          @for (subject of term.subjects; track subject.id) {
+            <div class="subject-card card">
+              <div class="subject-color-bar" [style.backgroundColor]="subject.color_code"></div>
+              <div class="subject-content">
+                <h4>{{ subject.name }}</h4>
+                <div class="subject-footer">
+                  <span class="subject-tasks">{{ subject.tasks?.length || 0 }} tareas activas</span>
+                  <button class="btn-icon" routerLink="/agenda">→</button>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+    } @else {
+      <div class="empty-state-wrapper">
+        <div class="empty-state-card card">
+          <div class="empty-icon-large bg-blue-gradient">🎓</div>
+          <h2>Bienvenido a StudyTrack</h2>
+          <p>El panel está vacío porque aún no has configurado tu periodo académico.</p>
+          <button class="btn-primary btn-large" routerLink="/configuracion">Configurar mi primer Semestre</button>
+        </div>
       </div>
-    </section>
+    }
 
   </main>
+
+  @if (isSettingsModalOpen) {
+    <div class="modal-overlay" (click)="closeSettingsModal()" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; z-index: 1000;">
+      <div class="modal-content card" (click)="$event.stopPropagation()" style="width: 100%; max-width: 600px; padding: 2rem; background: #fff !important; border-radius: 20px;">
+        
+        <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 1rem;">
+          <h3 style="margin: 0; color: #0f172a; font-size: 1.5rem; font-weight: 700;">Ajustes de Semestre</h3>
+          <button class="btn-close" (click)="closeSettingsModal()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: #64748b;">×</button>
+        </div>
+
+        <div class="settings-body" style="display: flex; flex-direction: column; gap: 1.5rem;">
+          
+          <div class="add-subject-box" style="background: #f8fafc; padding: 1rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <h4 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1rem;">Agregar Nueva Materia</h4>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <input type="text" [(ngModel)]="newSubjectName" placeholder="Nombre de materia" style="flex: 1; padding: 0.6rem 1rem; border: 1px solid #cbd5e1; border-radius: 8px;">
+              <input type="color" [(ngModel)]="newSubjectColor" style="height: 40px; width: 40px; border: none; border-radius: 8px; cursor: pointer;">
+              <button class="btn-primary" (click)="onAddSubject()">+ Agregar</button>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="margin: 0 0 1rem 0; color: #0f172a; font-size: 1rem;">Materias Activas</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; max-height: 250px; overflow-y: auto;">
+              @if (activeTerm$ | async; as currentTerm) {
+                @for (subject of currentTerm.subjects; track subject.id) {
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                      <div style="width: 16px; height: 16px; border-radius: 50%;" [style.backgroundColor]="subject.color_code"></div>
+                      <span style="color: #0f172a; font-weight: 600;">{{ subject.name }}</span>
+                    </div>
+                    <button class="btn-logout" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" (click)="onDeleteSubject(subject.id)">Eliminar</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid #e2e8f0; padding-top: 1.5rem; margin-top: 0.5rem;">
+            <button class="btn-logout" style="width: 100%; text-align: center; padding: 0.8rem;" (click)="onDeleteTerm(currentTermId)">
+              ⚠️ Eliminar Semestre Completo
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  }
+
 </div>

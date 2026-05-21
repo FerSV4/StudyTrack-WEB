@@ -1,0 +1,71 @@
+<div class="config-layout">
+  <div class="config-container">
+    
+    <header class="config-header">
+      <div class="icon-wrapper">🎓</div>
+      <h1>Configura tu Semestre</h1>
+      <p>Establece tu periodo académico y las materias que vas a cursar para empezar a organizarte.</p>
+    </header>
+
+    <form [formGroup]="configForm" (ngSubmit)="onSubmit()" class="config-form">
+      
+      <section class="form-section">
+        <h2 class="section-title">1. Datos del Periodo Académico</h2>
+        
+        <div class="form-group">
+          <label>Nombre del Semestre</label>
+          <input type="text" formControlName="termName" placeholder="Ej: Semestre 1-2026" class="form-control">
+        </div>
+
+        <div class="grid-dates">
+          <div class="form-group">
+            <label>Fecha de Inicio</label>
+            <input type="date" formControlName="startDate" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Fecha de Fin (Aproximada)</label>
+            <input type="date" formControlName="endDate" class="form-control">
+          </div>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <div class="section-header-flex">
+          <h2 class="section-title">2. Tus Materias</h2>
+          <button type="button" class="btn-add-text" (click)="addSubject()">+ Agregar Materia</button>
+        </div>
+        
+        <div formArrayName="subjects" class="subjects-list">
+          @for (subject of subjects.controls; track subject; let i = $index) {
+            <div [formGroupName]="i" class="subject-row">
+              
+              <div class="form-group flex-1">
+                <input type="text" formControlName="name" placeholder="Ej: Ingeniería de Software, Redes..." class="form-control">
+              </div>
+
+              <div class="color-picker-wrapper">
+                <input type="color" formControlName="colorCode" class="color-input">
+              </div>
+
+              <button type="button" class="btn-remove" (click)="removeSubject(i)" [disabled]="subjects.length === 1">
+                🗑️
+              </button>
+            </div>
+          }
+        </div>
+      </section>
+
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" routerLink="/dashboard">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="configForm.invalid || isSubmitting">
+          @if (isSubmitting) {
+            Configurando...
+          } @else {
+            Empezar Semestre 🚀
+          }
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
