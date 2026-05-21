@@ -1,36 +1,49 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
-import { LoginComponent } from './pages/login/login.component';
-import { DashboardComponent } from './pages/dashboard/dashboard.component';
-import { ProfileComponent } from './pages/profile/profile.component';
-import { RegisterComponent } from './pages/register/register.component';
-import { AgendaComponent } from './pages/agenda/agenda.component';
 import { publicGuard } from './core/guards/public.guard';
+import { ConfiguracionComponent } from './pages/configuracion/configuracion.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent, canActivate: [publicGuard] },
-  { path: 'register', component: RegisterComponent, canActivate: [publicGuard] },
+  { 
+    path: 'login', 
+    loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent), 
+    canActivate: [publicGuard] 
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./pages/register/register.component').then(m => m.RegisterComponent), 
+    canActivate: [publicGuard] 
+  },
   {
     path: 'dashboard',
-    component: DashboardComponent,
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [authGuard],
   },
   {
     path: 'agenda',
-    component: AgendaComponent,
+    loadComponent: () => import('./pages/agenda/agenda.component').then(m => m.AgendaComponent),
     canActivate: [authGuard],
   },
   {
     path: 'calendar',
-    component: DashboardComponent,
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [authGuard],
   },
-  { path: 'profile', component: ProfileComponent, canActivate: [authGuard] },
+  { 
+    path: 'profile', 
+    loadComponent: () => import('./pages/profile/profile.component').then(m => m.ProfileComponent), 
+    canActivate: [authGuard] 
+  },
   {
     path: 'settings',
-    component: DashboardComponent,
+    loadComponent: () => import('./pages/dashboard/dashboard.component').then(m => m.DashboardComponent),
     canActivate: [authGuard],
   },
+  { 
+    path: 'pomodoro', 
+    loadComponent: () => import('./pages/pomodoro/pomodoro.component').then(m => m.PomodoroComponent) 
+  },
+  { path: 'configuracion', component: ConfiguracionComponent },
   { path: '**', redirectTo: '/dashboard' },
 ];

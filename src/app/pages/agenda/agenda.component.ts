@@ -2,8 +2,9 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
-import { TaskService } from '../../services/task.service';
-import { AuthService } from '../../services/auth.service';
+import { TaskService } from '../../core/services/task.service';
+import { AuthService } from '../../core/services/auth.service';
+import { TermService } from '../../core/services/term.service';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { isBefore, isToday, parseISO, startOfDay } from 'date-fns';
@@ -17,14 +18,16 @@ import { isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 })
 export class AgendaComponent implements OnInit {
   public taskService = inject(TaskService);
+  public termService = inject(TermService);
   private authService = inject(AuthService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
 
   public taskForm: FormGroup;
   public isCreating = false;
-  public editingTaskId: number | null = null;
+  public editingTaskId: string | null = null;
   public isModalOpen = false;
+  private initialFormState: string | null = null;
 
   public statusFilter = new BehaviorSubject<string>('Todas');
   public timeFilter = new BehaviorSubject<string>('Proximas');
@@ -34,10 +37,10 @@ export class AgendaComponent implements OnInit {
   constructor() {
     this.taskForm = this.fb.group({
       title: ['', Validators.required],
-      subject: ['', Validators.required],
+      subjectId: ['', Validators.required],
       description: [''],
-      due_date: [''],
-      priority: ['Media', Validators.required],
+      dueDate: [''],
+      priority: ['medium', Validators.required],
     });
 
     this.filteredTasks$ = combineLatest([
@@ -67,15 +70,15 @@ export class AgendaComponent implements OnInit {
           .sort((a, b) => {
             if (!a.due_date) return 1;
             if (!b.due_date) return -1;
-
             return parseISO(a.due_date).getTime() - parseISO(b.due_date).getTime();
           });
-      }),
+      })
     );
   }
 
   ngOnInit(): void {
     this.taskService.loadUserTasks();
+    this.termService.loadActiveTree();
   }
 
   public changeStatusFilter(event: Event): void {
@@ -90,7 +93,8 @@ export class AgendaComponent implements OnInit {
 
   public openModalForCreate(): void {
     this.editingTaskId = null;
-    this.taskForm.reset({ priority: 'Media' });
+    this.taskForm.reset({ priority: 'medium' });
+    this.initialFormState = null;
     this.isModalOpen = true;
   }
 
@@ -98,51 +102,79 @@ export class AgendaComponent implements OnInit {
     this.editingTaskId = task.id;
     this.taskForm.patchValue({
       title: task.title,
-      subject: task.subject,
+      subjectId: task.subject_id,
       description: task.description || '',
-      due_date: task.due_date || '',
+      dueDate: task.due_date ? task.due_date.split('T')[0] : '',
       priority: task.priority,
     });
+    
+    this.initialFormState = JSON.stringify(this.taskForm.value);
+    
     this.isModalOpen = true;
   }
 
   public closeModal(): void {
     this.isModalOpen = false;
     this.editingTaskId = null;
-    this.taskForm.reset({ priority: 'Media' });
+    this.taskForm.reset({ priority: 'medium' });
   }
 
   public async onSaveTask(): Promise<void> {
-    if (this.taskForm.invalid) return;
+    if (this.taskForm.invalid) {
+      this.taskForm.markAllAsTouched();
+      return;
+    }
+
+    const formValues = this.taskForm.value;
+
+    if (this.editingTaskId && this.initialFormState) {
+      const currentState = JSON.stringify(formValues);
+      if (this.initialFormState === currentState) {
+        console.log('No se detectaron cambios. Cancelando petición HTTP.');
+        this.closeModal();
+        return;
+      }
+    }
 
     this.isCreating = true;
+
     try {
       if (this.editingTaskId) {
-        await this.taskService.updateTaskDetails(this.editingTaskId, this.taskForm.value);
+        const updatePayload = {
+          ...formValues,
+          subjectId: String(formValues.subjectId) 
+        };
+        await this.taskService.updateTaskDetails(this.editingTaskId, updatePayload);
+        
       } else {
-        await this.taskService.createTask(this.taskForm.value);
+        const createPayload = {
+          ...formValues,
+          subjectId: Number(formValues.subjectId) 
+        };
+        await this.taskService.createTask(createPayload);
       }
+      
       this.closeModal();
     } catch (e) {
-      console.warn('Errores de conexion');
+      console.warn('Errores de conexión o guardado');
     } finally {
       this.isCreating = false;
     }
   }
 
-  public async onToggleStatus(id: number, status: string): Promise<void> {
+  public async onToggleStatus(id: string, status: string): Promise<void> {
     await this.taskService.toggleTaskStatus(id, status);
   }
 
-  public async onDeleteTask(id: number): Promise<void> {
+  public async onDeleteTask(id: string): Promise<void> {
     if (confirm('¿Estás seguro de eliminar esta tarea?')) {
       await this.taskService.deleteTask(id);
     }
   }
 
-  public async onLogout(): Promise<void> {
+  public onLogout(): void {
+    this.authService.logout();
     this.taskService.clearCache();
-    await this.authService.signOut();
     this.router.navigate(['/login']);
   }
 }

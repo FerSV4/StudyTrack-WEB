@@ -44,3 +44,4 @@ Thumbs.db
 # Ambientes y Credenciales
 src/environments/environment.ts
 src/environments/environment.development.ts
+/.scannerwork

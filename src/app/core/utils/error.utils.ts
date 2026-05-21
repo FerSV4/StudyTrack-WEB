@@ -21,3 +21,5 @@ export function mapSupaApiError(error: any): string {
 
   return 'Error.';
 }
+
+//Diccionario de errores
