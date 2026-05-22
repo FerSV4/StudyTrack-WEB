@@ -1,4 +1,4 @@
-# StudyTrack
+# StudyTrack WEB
 
 Plataforma web diseñada para optimizar la organización académica, permitiendo a los estudiantes centralizar y gestionar sus tareas, materias y fechas de entrega de manera eficiente.
 
