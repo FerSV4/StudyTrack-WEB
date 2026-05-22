@@ -24,6 +24,12 @@ jobs:
       - name: Install Dependencies
         run: npm install
 
+      - name: Generate Environment Files
+        run: |
+          mkdir -p src/environments
+          echo "export const environment = { production: true, apiUrl: '${{ secrets.API_URL_PROD }}' };" > src/environments/environment.ts
+          echo "export const environment = { production: true, apiUrl: '${{ secrets.API_URL_PROD }}' };" > src/environments/environment.prod.ts
+
       - name: Build Angular
         run: npm run build -- --configuration production
 
