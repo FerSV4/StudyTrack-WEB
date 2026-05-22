@@ -14,5 +14,5 @@ Plataforma web diseñada para optimizar la organización académica, permitiendo
 ## Stack Tecnológico
 
 * **Frontend:** Angular (Standalone Components), TypeScript, RxJS, HTML5, CSS3.
-* **Backend (BaaS):** Supabase (PostgreSQL, GoTrue).
+* **Backend:** NestJS + Prisma.
 
