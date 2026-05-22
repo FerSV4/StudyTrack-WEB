@@ -1,0 +1,50 @@
+name: Frontend CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "master", "Examen1-MVP" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  validate:
+    name: Frontend Validation (Angular)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Angular
+        run: npm run build -- --configuration production
+
+  docker-build:
+    name: Dockerize Frontend
+    needs: validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          tags: studytrack-frontend:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
