@@ -4,5 +4,4 @@ dist/
 .git/
 .vscode/
 .husky/
-./src/enviroments
 README.md
