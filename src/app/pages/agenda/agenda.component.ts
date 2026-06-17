@@ -142,7 +142,7 @@ export class AgendaComponent implements OnInit {
       if (this.editingTaskId) {
         const updatePayload = {
           ...formValues,
-          subjectId: String(formValues.subjectId) 
+          subjectId: Number(formValues.subjectId) 
         };
         await this.taskService.updateTaskDetails(this.editingTaskId, updatePayload);
         
