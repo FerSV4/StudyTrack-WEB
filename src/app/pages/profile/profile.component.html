@@ -8,6 +8,10 @@
         <a routerLink="/pomodoro" class="nav-item">Modo Enfoque</a>
       </nav>
       <div class="header-actions">
+        <a *ngIf="isAdmin" routerLink="/admin/dashboard" class="btn-admin">
+          ADMIN
+        </a>
+
         <button class="btn-secondary active">Perfil</button>
         <button class="btn-logout" (click)="onLogout()">Cerrar sesión</button>
       </div>

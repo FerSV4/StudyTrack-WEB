@@ -66,3 +66,12 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/studytrack-frontend:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Deploy to AWS EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ubuntu
+          key: ${{ secrets.AWS_PRIVATE_KEY }}
+          script: |
+            sudo k3s kubectl rollout restart deployment studytrack-frontend

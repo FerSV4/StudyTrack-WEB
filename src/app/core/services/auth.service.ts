@@ -49,6 +49,22 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('access_token');
   }
+  getRole(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+
+      const payloadBase64 = token.split('.')[1];
+      
+      const decodedPayload = JSON.parse(atob(payloadBase64));
+
+      return decodedPayload.role || 'user';
+    } catch (error) {
+      console.error('Error al decodificar el token:', error);
+      return null;
+    }
+  }
 
   isLoggedIn(): boolean {
     return !!this.getToken();

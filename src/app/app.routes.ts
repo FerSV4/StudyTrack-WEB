@@ -1,7 +1,9 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { publicGuard } from './core/guards/public.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { ConfiguracionComponent } from './pages/configuracion/configuracion.component';
+import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -43,6 +45,11 @@ export const routes: Routes = [
   { 
     path: 'pomodoro', 
     loadComponent: () => import('./pages/pomodoro/pomodoro.component').then(m => m.PomodoroComponent) 
+  },
+  {
+    path: 'admin/dashboard',
+    component: AdminDashboardComponent,
+    canActivate: [authGuard, adminGuard]
   },
   { path: 'configuracion', component: ConfiguracionComponent },
   { path: '**', redirectTo: '/dashboard' },

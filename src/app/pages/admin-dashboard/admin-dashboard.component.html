@@ -1,0 +1,41 @@
+<div class="container" *ngIf="stats">
+  <h2>Panel de Control - Administrador</h2>
+  
+  <div class="stats-grid">
+    <div class="card">
+      <h3>Usuarios Registrados</h3>
+      <p class="big-number">{{ stats.totalUsers }}</p>
+    </div>
+    <div class="card">
+      <h3>Tareas Globales</h3>
+      <p class="big-number">{{ stats.totalTasks }}</p>
+    </div>
+    <div class="card">
+      <h3>Tasa de Finalización</h3>
+      <p class="big-number">{{ stats.completionRate }}%</p>
+      <small>Tareas completadas vs pendientes</small>
+    </div>
+  </div>
+
+  <hr>
+
+  <h3>Registro de Auditoría del Sistema</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha y Hora</th>
+        <th>Usuario (Email)</th>
+        <th>Acción</th>
+        <th>Detalles</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of logs">
+        <td>{{ log.created_at | date:'short' }}</td>
+        <td>{{ log.users?.email || 'Sistema/Anónimo' }}</td>
+        <td><strong>{{ log.action }}</strong></td>
+        <td>{{ log.details }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
